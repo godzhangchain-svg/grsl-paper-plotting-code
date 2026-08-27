@@ -1,0 +1,13 @@
+outputs/
+data/
+local_config.m
+*.asv
+*.fig
+*.png
+*.pdf
+*.svg
+*.tif
+*.tiff
+*.csv
+*.mat
+*.log

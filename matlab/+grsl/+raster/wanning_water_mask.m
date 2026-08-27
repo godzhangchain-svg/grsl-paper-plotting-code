@@ -1,0 +1,26 @@
+function waterMask = wanning_water_mask(img4, settings)
+% Build the production Wanning spectral and morphology water mask.
+b2 = single(img4(:,:,1));
+b3 = single(img4(:,:,2));
+b4 = single(img4(:,:,3));
+b8 = single(img4(:,:,4));
+ndwi = (b3 - b8) ./ (b3 + b8 + eps('single'));
+spectralValid = isfinite(b2) & isfinite(b3) & isfinite(b4) & isfinite(b8) & ...
+    b2 > settings.minimumStoredBandValue & ...
+    b3 > settings.minimumStoredBandValue & ...
+    b4 > settings.minimumStoredBandValue & ...
+    b8 > settings.minimumStoredBandValue & ...
+    b2 < settings.maximumStoredBandValue & ...
+    b3 < settings.maximumStoredBandValue & ...
+    b4 < settings.maximumStoredBandValue & ...
+    b8 < settings.maximumStoredBandValue;
+candidate = spectralValid & ndwi > settings.ndwiThreshold;
+candidate = imclose(candidate, strel('disk', settings.morphologyRadiusPixels, 0));
+candidate = bwareaopen(candidate, settings.minimumObjectPixels, 8);
+cc = bwconncomp(candidate, 8);
+assert(cc.NumObjects > 0, 'No connected water component was found.');
+sizes = cellfun(@numel, cc.PixelIdxList);
+[~, largest] = max(sizes);
+waterMask = false(size(candidate));
+waterMask(cc.PixelIdxList{largest}) = true;
+end
